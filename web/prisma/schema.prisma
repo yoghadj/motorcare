@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash String    @map("password_hash")
+  name          String?
+  phone         String?
+  role          Role      @default(USER)
+  emailVerified DateTime? @map("email_verified")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts      Account[]
+  sessions      Session[]
+  dictionaryEntries DictionaryEntry[]
+  motorcycles   Motorcycle[]
+}
+
+model DictionaryEntry {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  title       String
+  description String?  @db.Text
+  image       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Motorcycle {
+  id               String    @id @default(cuid())
+  userId           String    @map("user_id")
+  brand            String
+  model            String
+  year             Int
+  engineCc         Int       @map("engine_cc")
+  licensePlate     String?   @map("license_plate")
+  purchaseDate     DateTime? @map("purchase_date") @db.Date
+  currentOdometer  Int       @map("current_odometer")
+  nickname         String?
+  image            String?
+  isActive         Boolean   @default(false) @map("is_active")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  odometerLogs  OdometerLog[]
+  serviceRecords ServiceRecord[]
+  fuelLogs      FuelLog[]
+}
+
+model OdometerLog {
+  id                   String   @id @default(cuid())
+  motorcycleId         String   @map("motorcycle_id")
+  date                 DateTime @db.Date
+  odometer             Int
+  distanceSinceLast    Int?     @map("distance_since_last")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  motorcycle Motorcycle @relation(fields: [motorcycleId], references: [id], onDelete: Cascade)
+
+  @@index([motorcycleId, date])
+}
+
+enum ServiceType {
+  REGULAR_SERVICE
+  REPAIR
+  EMERGENCY
+  OTHER
+}
+
+model ServiceRecord {
+  id           String      @id @default(cuid())
+  motorcycleId String      @map("motorcycle_id")
+  serviceDate  DateTime    @map("service_date") @db.Date
+  odometer     Int
+  workshopName String?     @map("workshop_name")
+  notes        String?     @db.Text
+  serviceCost  Decimal     @map("service_cost") @db.Decimal(12, 2)
+  totalCost    Decimal     @map("total_cost") @db.Decimal(12, 2)
+  serviceType  ServiceType @map("service_type")
+  deletedAt    DateTime?   @map("deleted_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  motorcycle Motorcycle   @relation(fields: [motorcycleId], references: [id], onDelete: Cascade)
+  items      ServiceItem[]
+}
+
+model ServiceItem {
+  id              String   @id @default(cuid())
+  serviceRecordId String   @map("service_record_id")
+  itemName        String   @map("item_name")
+  quantity        Int      @default(1)
+  unitCost        Decimal  @map("unit_cost") @db.Decimal(12, 2)
+  totalCost       Decimal  @map("total_cost") @db.Decimal(12, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  serviceRecord ServiceRecord @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+}
+
+model FuelLog {
+  id           String    @id @default(cuid())
+  motorcycleId String    @map("motorcycle_id")
+  refillDate   DateTime  @map("refill_date") @db.Date
+  liters       Decimal   @db.Decimal(10, 2)
+  totalPrice   Decimal   @map("total_price") @db.Decimal(12, 2)
+  odometer     Int
+  fuelProvider String?   @map("fuel_provider")
+  fuelType     String?
+  stationName  String?   @map("station_name")
+  isFullTank   Boolean   @default(true) @map("is_full_tank")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  motorcycle Motorcycle @relation(fields: [motorcycleId], references: [id], onDelete: Cascade)
+
+  @@index([motorcycleId, refillDate])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Account {
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token     String? @db.Text
+  expires_at       Int?
+  token_type       String?
+  scope            String?
+  id_token         String? @db.Text
+  session_state    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
