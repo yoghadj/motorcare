@@ -139,7 +139,7 @@ export default async function DashboardPage() {
                     {r.motorcycle.nickname || `${r.motorcycle.brand} ${r.motorcycle.model}`}
                   </span>
                   <span className="text-muted-foreground"> · {r.serviceDate.toISOString().slice(0, 10)}</span>
-                  <span className="ml-2 font-medium">{formatCurrency(r.totalCost)}</span>
+                  <span className="ml-2 font-medium">{formatCurrency(Number(r.totalCost))}</span>
                 </Link>
               ))}
             </div>
@@ -161,7 +161,7 @@ export default async function DashboardPage() {
                     {l.motorcycle.nickname || `${l.motorcycle.brand} ${l.motorcycle.model}`}
                   </span>
                   <span className="text-muted-foreground"> · {l.refillDate.toISOString().slice(0, 10)}</span>
-                  <span className="ml-2 font-medium">{formatCurrency(l.totalPrice)}</span>
+                  <span className="ml-2 font-medium">{formatCurrency(Number(l.totalPrice))}</span>
                 </Link>
               ))}
             </div>

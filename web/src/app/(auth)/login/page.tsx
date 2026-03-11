@@ -31,7 +31,7 @@ export default async function LoginPage() {
       <LoginForm dictionary={dictionary} />
       <p className="text-center text-sm text-muted-foreground">
         <a href="/register" className="underline hover:text-foreground">
-          {dictionary.auth.noAccount} {dictionary.auth.register}
+          {dictionary.auth.noAccount} {dictionary.common.register}
         </a>
       </p>
     </div>

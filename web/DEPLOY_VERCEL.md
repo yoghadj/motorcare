@@ -1,63 +1,32 @@
 # Deploy MotorCare to Vercel
 
-## 1. Production database (required)
+## 1. Database: Neon (PostgreSQL)
 
-Vercel does not host MySQL. Use a **cloud MySQL** provider and get a connection URL.
+This project uses **Neon** (PostgreSQL). In the [Neon dashboard](https://console.neon.tech):
 
-### Option A: PlanetScale (MySQL, free tier)
-
-1. Sign up at [planetscale.com](https://planetscale.com).
-2. Create a new database (e.g. `motorcare`).
-3. In the dashboard: **Connect** → **Connect with Prisma** (or **General**) and copy the connection string. It looks like:
+1. Create or open your project and database (e.g. `neondb`).
+2. Go to **Connection details** and copy the connection string.
+3. **Use the pooled URL** for Vercel (serverless). It usually contains `-pooler` in the host and is recommended for most uses. Example format:
    ```txt
-   mysql://user:password@host/database?sslaccept=strict
+   postgresql://USER:PASSWORD@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
    ```
-4. If you use PlanetScale, they use a **branch** (e.g. `main`). Create the branch and use its URL. You may need to run migrations from your machine (see step 5).
+4. For running migrations or seed from your machine, you can use the same pooled URL, or the **unpooled** URL if Neon suggests it for long-running connections.
 
-### Option B: Railway (MySQL)
-
-1. Sign up at [railway.app](https://railway.app).
-2. New Project → **Add MySQL**.
-3. Open the MySQL service → **Variables** or **Connect** and copy `DATABASE_URL`.
-
-### Option C: Other MySQL hosts
-
-Use any hosted MySQL (e.g. Aiven, DigitalOcean Managed DB). The URL format is:
-
-```txt
-mysql://USER:PASSWORD@HOST:PORT/DATABASE
-```
-
-For TLS (recommended in production), add `?sslmode=require` or the option your provider gives.
+Put the URL in `.env` as `DATABASE_URL` (see `.env.example`).
 
 ---
 
 ## 2. Push schema and seed (one-time)
 
-From your **local machine**, point to the **production** database and apply the schema:
+From your **local machine**, with `DATABASE_URL` in `.env` pointing at your Neon database:
 
 ```bash
 cd web
-```
-
-Set `DATABASE_URL` to your **production** URL (e.g. in `.env.production` or inline):
-
-```bash
-# Unix/macOS (replace with your real URL)
-export DATABASE_URL="mysql://user:pass@host/db?sslaccept=strict"
 npx prisma db push
 npx prisma db seed
 ```
 
-On Windows (PowerShell):
-
-```powershell
-$env:DATABASE_URL="mysql://user:pass@host/db?sslaccept=strict"
-npx prisma db push
-npx prisma db seed
-```
-
-This creates tables and seeds the admin user + dictionary. Keep `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env` when seeding, or pass them when you run the seed (e.g. set in Vercel first and run seed with that URL).
+This creates tables and seeds the admin user + dictionary. Use the same `ADMIN_EMAIL` / `ADMIN_PASSWORD` you want for production (or set them in `.env` when seeding).
 
 ---
 
@@ -76,7 +45,7 @@ In the Vercel project: **Settings** → **Environment Variables**. Add:
 
 | Name | Value | Notes |
 |------|--------|--------|
-| `DATABASE_URL` | `mysql://user:pass@host/db?...` | Production MySQL URL from step 1 |
+| `DATABASE_URL` | Your Neon pooled URL | From Neon dashboard (use the pooler URL for serverless) |
 | `NEXTAUTH_URL` | `https://your-app.vercel.app` | Your Vercel URL (replace after first deploy if needed) |
 | `NEXTAUTH_SECRET` | (random string) | e.g. `openssl rand -base64 32` |
 | `ADMIN_EMAIL` | Your admin email | Optional; used if you run seed against prod |
@@ -117,7 +86,7 @@ For `NEXTAUTH_URL`: you can set it to `https://your-project.vercel.app` after th
 
 ## Quick checklist
 
-- [ ] Cloud MySQL created and `DATABASE_URL` copied
+- [ ] Neon database created and `DATABASE_URL` (pooled URL) set
 - [ ] `prisma db push` and `prisma db seed` run once against production DB
 - [ ] Repo connected to Vercel; Root Directory = `web` if app is in `web/`
 - [ ] `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET` set in Vercel

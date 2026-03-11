@@ -7,7 +7,7 @@ Next.js 15 app for MotorCare (motorcycle maintenance & cost tracking). Implement
 - **Next.js 15** (App Router, Turbopack)
 - **TypeScript**
 - **Tailwind CSS**
-- **Prisma** + **MySQL** (local)
+- **Prisma** + **PostgreSQL** (Neon in production, or local Postgres)
 - **NextAuth.js** (credentials, JWT session)
 
 ## Setup
@@ -22,7 +22,7 @@ Next.js 15 app for MotorCare (motorcycle maintenance & cost tracking). Implement
 
    Copy `.env.example` to `.env` and set:
 
-   - `DATABASE_URL` – MySQL connection string (e.g. `mysql://root:@localhost:3306/motorcare` for local). Create the DB first: `CREATE DATABASE motorcare;`
+   - `DATABASE_URL` – PostgreSQL connection string (e.g. your Neon pooled URL from the [Neon dashboard](https://console.neon.tech), or local `postgresql://user:pass@localhost:5432/motorcare`)
    - `NEXTAUTH_URL` – e.g. `http://localhost:3000`
    - `NEXTAUTH_SECRET` – e.g. `openssl rand -base64 32`
    - Optional: `ADMIN_EMAIL`, `ADMIN_PASSWORD` for seed
